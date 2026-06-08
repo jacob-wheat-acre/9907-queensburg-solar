@@ -1,0 +1,447 @@
+! ============================================================
+! OpenDSS Model: 9907 Queensburg St – DIA Solar Site
+! Source: Xcel Energy Power Quality Analysis, 11/16/2023
+! ============================================================
+!
+! One-Line Topology (left to right):
+!
+!  Xcel 24.9kV ─[T1 2500kVA Yy]─ 0.48kV bus ─[T2 2350kVA Yy]─ 13.8kV ──1.94mi──[T3 2520kVA Dy]─ 0.63kV ─┬─ Inverter1 750kW
+!                                      │                                                                      ├─ Inverter2 750kW
+!                                  [Zig-Zag]                                                                  └─ Inverter3 750kW
+!
+! Voltage bases: 24.9kV / 0.48kV / 13.8kV / 0.63kV
+! Total DER capacity: 2,250 kW AC (3 × 750 kW)
+!
+! NOTE: Transformer %Z and line conductor type are typical assumed
+!       values. Replace with actual nameplate and conductor data.
+! ============================================================
+
+Clear
+
+Set DefaultBaseFreq=60
+
+! ============================================================
+! CIRCUIT – Xcel Energy 24.9kV Utility Source
+! MVAsc estimated; update with actual Xcel fault duty at POI
+! ============================================================
+New Circuit.DIA_Queensburg
+~ basekv=24.9
+~ pu=1.00
+~ phases=3
+~ bus1=SubstationBus
+~ MVAsc3=500
+~ MVAsc1=400
+
+! ============================================================
+! TRANSFORMERS
+! %Rs split equally between primary/secondary windings.
+! XHL = sqrt(%Z^2 - %R_total^2), using %Z=5.75%, %R_total=0.5%
+! ============================================================
+
+! T1 – Xcel Service Transformer
+!      24.9kV (Wye-grounded) / 0.48kV (Wye-grounded), 2500 kVA
+New Transformer.T1_XcelService
+~ phases=3
+~ windings=2
+~ buses=[SourceBus, Bus_480V]
+~ conns=[wye, wye]
+~ kVs=[24.9, 0.480]
+~ kVAs=[2500, 2500]
+~ %Rs=[0.25, 0.25]
+~ XHL=5.73
+~ %noloadloss=0.10
+~ %imag=0.50
+
+! T2 – DIA7 Customer Step-Up Transformer
+!      0.48kV (Wye-grounded) / 13.8kV (Wye-grounded), 2350 kVA
+New Transformer.T2_DIA7StepUp
+~ phases=3
+~ windings=2
+~ buses=[Bus_480V, Bus_13800_Send]
+~ conns=[wye, wye]
+~ kVs=[0.480, 13.8]
+~ kVAs=[2350, 2350]
+~ %Rs=[0.25, 0.25]
+~ XHL=5.73
+~ %noloadloss=0.10
+~ %imag=0.50
+
+! T3 – Solar Site Step-Down Transformer
+!      13.8kV (Delta) / 0.63kV (Wye-grounded), 2520 kVA
+New Transformer.T3_SiteStepDown
+~ phases=3
+~ windings=2
+~ buses=[Bus_13800_Recv, Bus_630V]
+~ conns=[delta, wye]
+~ kVs=[13.8, 0.630]
+~ kVAs=[2520, 2520]
+~ %Rs=[0.25, 0.25]
+~ XHL=5.73
+~ %noloadloss=0.10
+~ %imag=0.50
+
+! ============================================================
+! ZIG-ZAG GROUNDING TRANSFORMER
+! Located at the 0.48kV bus (DIA7) per the one-line diagram.
+! Provides a solidly-grounded neutral on the ungrounded side.
+! Modeled as wye-delta; rated kVA is estimated (no nameplate given).
+! ============================================================
+New Transformer.T_ZigZag
+~ phases=3
+~ windings=2
+~ buses=[Bus_480V, Bus_ZZ_Internal]
+~ conns=[wye, delta]
+~ kVs=[0.480, 0.480]
+~ kVAs=[250, 250]
+~ %Rs=[0.50, 0.50]
+~ XHL=5.00
+~ %noloadloss=0.00
+
+! ============================================================
+! 13.8kV UNDERGROUND FEEDER (1.94 miles)
+! Conductor: 1,000 kcmil Al, 15kV class XLPE (direct buried or conduit)
+! Underground cable has ~68× more capacitance than overhead ACSR.
+! This capacitance interacts with transformer leakage inductance to
+! create a parallel resonance around h=8-10 (480-600 Hz).
+! r0/x0: concentric neutral cable; earth return less dominant than overhead.
+! ============================================================
+New LineCode.UG_1000Al_15kV
+~ nphases=3
+~ r1=0.063    ! Ω/mile, AC resistance at 90°C, 1000 kcmil Al
+~ x1=0.040    ! Ω/mile, positive-sequence reactance (low – tight spacing)
+~ r0=0.200    ! Ω/mile, zero-sequence resistance
+~ x0=0.040    ! Ω/mile, zero-sequence reactance (similar to x1 for cable)
+~ c1=380      ! nF/mile, 15kV class XLPE – ~68× overhead ACSR
+~ c0=380      ! nF/mile, zero-sequence capacitance (similar for cable)
+~ units=mi
+
+New Line.Feeder_13800V
+~ bus1=Bus_13800_Send
+~ bus2=Bus_13800_Recv
+~ linecode=UG_1000Al_15kV
+~ length=1.94
+
+! ============================================================
+! XCEL UNDERGROUND CABLE (2.0 miles, 24.9kV → Xcel substation)
+! 1,000 kcmil Al, 25kV class XLPE.  Not previously modeled.
+! The 580 nF total capacitance adds ~407 kVAR at 60 Hz and
+! significantly lowers the resonant harmonic order.
+! ============================================================
+New LineCode.UG_1000Al_25kV
+~ nphases=3
+~ r1=0.063    ! Ω/mile
+~ x1=0.050    ! Ω/mile (slightly higher – 25kV class insulation)
+~ r0=0.200    ! Ω/mile
+~ x0=0.050    ! Ω/mile
+~ c1=290      ! nF/mile, 25kV class XLPE (thicker insulation, lower C)
+~ c0=290      ! nF/mile
+~ units=mi
+
+New Line.Xcel_Cable_24900V
+~ bus1=SubstationBus
+~ bus2=SourceBus
+~ linecode=UG_1000Al_25kV
+~ length=2.0
+~ units=mi
+~ units=mi
+
+! ============================================================
+! SOLAR IRRADIANCE LOADSHAPES (for daily simulation)
+! Normalized to 1.0 = full rated irradiance
+! ============================================================
+New LoadShape.Solar_Full
+~ npts=24
+~ interval=1
+~ mult=[0,0,0,0,0,0,0.05,0.25,0.60,0.85,1.00,1.00,1.00,1.00,0.90,0.70,0.40,0.15,0.02,0,0,0,0,0]
+
+New LoadShape.Solar_75pct
+~ npts=24
+~ interval=1
+~ mult=[0,0,0,0,0,0,0.04,0.19,0.45,0.64,0.75,0.75,0.75,0.75,0.68,0.53,0.30,0.11,0.02,0,0,0,0,0]
+
+New LoadShape.Solar_50pct
+~ npts=24
+~ interval=1
+~ mult=[0,0,0,0,0,0,0.03,0.13,0.30,0.43,0.50,0.50,0.50,0.50,0.45,0.35,0.20,0.08,0.01,0,0,0,0,0]
+
+New LoadShape.Solar_25pct
+~ npts=24
+~ interval=1
+~ mult=[0,0,0,0,0,0,0.01,0.06,0.15,0.21,0.25,0.25,0.25,0.25,0.23,0.18,0.10,0.04,0,0,0,0,0,0]
+
+! ============================================================
+! PV INVERTERS – Three 750 kW units at 0.63kV bus
+! kVA = 750 kW / 0.90 PF = 833 kVA per inverter
+! All three share the same 0.63kV bus (Bus_630V)
+! ============================================================
+New PVSystem.Inverter1
+~ phases=3
+~ bus1=Bus_630V
+~ kv=0.630
+~ kVA=833.3
+~ Pmpp=750
+~ pf=1.0
+~ irradiance=1.0
+~ daily=Solar_Full
+~ Vmaxpu=1.10
+~ Vminpu=0.90
+~ %cutin=0.05
+~ %cutout=0.05
+
+New PVSystem.Inverter2
+~ phases=3
+~ bus1=Bus_630V
+~ kv=0.630
+~ kVA=833.3
+~ Pmpp=750
+~ pf=1.0
+~ irradiance=1.0
+~ daily=Solar_Full
+~ Vmaxpu=1.10
+~ Vminpu=0.90
+~ %cutin=0.05
+~ %cutout=0.05
+
+New PVSystem.Inverter3
+~ phases=3
+~ bus1=Bus_630V
+~ kv=0.630
+~ kVA=833.3
+~ Pmpp=750
+~ pf=1.0
+~ irradiance=1.0
+~ daily=Solar_Full
+~ Vmaxpu=1.10
+~ Vminpu=0.90
+~ %cutin=0.05
+~ %cutout=0.05
+
+! ============================================================
+! HARMONIC SPECTRA
+! ============================================================
+
+! INJECTION spectrum: what the inverters actually put into the system.
+! Typical values for a modern 3-phase PWM grid-tied inverter.
+! These are the INPUTS to the resonance — small fractions of fundamental.
+! The circuit amplifies these into the large values observed in the report.
+New Spectrum.InverterInjection
+~ numharm=5
+~ harmonic=[1,   5,   7,  11,  13]
+~ %mag=    [100,  4,   2,   1, 0.5]
+~ angle=   [0,    0,   0,   0,   0]
+
+! MAGNETIZING spectrum: harmonic content of transformer no-load current.
+! Applied to T2 (step-up) to replicate Figure 8 — the 20% 5th harmonic
+! observed when inverters are fully disconnected. Transformer cores
+! naturally produce odd harmonics during magnetization.
+New Spectrum.XfmrMagnetizing
+~ numharm=4
+~ harmonic=[1,   3,   5,   7]
+~ %mag=    [100, 35,  15,   7]
+~ angle=   [0,   0,   0,   0]
+
+! MEASURED spectrum (reference only — do not apply to any element).
+! This is what the report observed at the CT after resonance amplification.
+! Keeping it here for comparison against harmonic mode output.
+! Expected result: circuit with InverterInjection + XfmrMagnetizing spectra
+! should produce currents approaching these levels at Bus_480V.
+!   5th: ~50%,  7th: ~16%,  3rd: ~7%,  9th: ~2%
+
+! ============================================================
+! MONITORS
+! Placed to match approximate measurement locations in the report.
+! mode=0 → voltage/current waveform; mode=1 → power
+! ============================================================
+
+! Billing meter location: T1 secondary / T2 primary (0.48kV bus)
+New Monitor.Mon_480V_Volt  element=Transformer.T1_XcelService  terminal=2  mode=0
+New Monitor.Mon_480V_Pwr   element=Transformer.T1_XcelService  terminal=2  mode=1
+
+! Step-up transformer T2
+New Monitor.Mon_T2_Pri     element=Transformer.T2_DIA7StepUp   terminal=1  mode=0
+New Monitor.Mon_T2_Sec     element=Transformer.T2_DIA7StepUp   terminal=2  mode=0
+
+! 13.8kV feeder, both ends
+New Monitor.Mon_Line_Send  element=Line.Feeder_13800V           terminal=1  mode=0
+New Monitor.Mon_Line_Recv  element=Line.Feeder_13800V           terminal=2  mode=0
+
+! Step-down transformer T3 (solar site)
+New Monitor.Mon_T3_Pri     element=Transformer.T3_SiteStepDown  terminal=1  mode=0
+New Monitor.Mon_T3_Sec     element=Transformer.T3_SiteStepDown  terminal=2  mode=0
+
+! Individual inverters
+New Monitor.Mon_Inv1       element=PVSystem.Inverter1  terminal=1  mode=1
+New Monitor.Mon_Inv2       element=PVSystem.Inverter2  terminal=1  mode=1
+New Monitor.Mon_Inv3       element=PVSystem.Inverter3  terminal=1  mode=1
+
+! ============================================================
+! ENERGY METER – at Xcel POI
+! ============================================================
+New EnergyMeter.Meter_POI element=Transformer.T1_XcelService terminal=1
+
+! ============================================================
+! VOLTAGE BASE SETUP
+! ============================================================
+Set VoltageBases=[24.9, 0.480, 13.8, 0.630]
+! SubstationBus is also 24.9 kV (same base); no separate entry needed.
+CalcVoltageBases
+
+! ============================================================
+! SCENARIO 1: Snapshot – 100% Solar Production
+! Reflects midday conditions during testing (10:40–11:10)
+! ============================================================
+Set Mode=Snapshot
+Set hour=11
+Set sec=0
+
+Solve
+
+Show Voltages LN Nodes
+Show Currents Residual=Yes Elements
+Show Powers kVA Elements
+Show Losses
+Show Taps
+
+! ============================================================
+! SCENARIO 2: Daily Simulation – Full Production Curve
+! Uncomment to run
+! ============================================================
+! Set Mode=Daily
+! Set StepSize=1h
+! Set Number=24
+! Solve
+
+! ============================================================
+! SCENARIO 3: Inverter Trip Testing
+! Replicates tripping individual 750 kW inverters offline.
+! Run each block independently as needed.
+! ============================================================
+
+! -- Trip Inverter 3 (2 inverters remain = ~1500 kW / 67%) --
+! PVSystem.Inverter3.enabled=false
+! Solve
+! Show Voltages LN Nodes
+! Show Powers kVA Elements
+
+! -- Trip Inverters 2 and 3 (1 inverter = ~750 kW / 33%) --
+! PVSystem.Inverter2.enabled=false
+! Solve
+! Show Voltages LN Nodes
+! Show Powers kVA Elements
+
+! -- All inverters tripped (step-up transformer energized, no DER) --
+! PVSystem.Inverter1.enabled=false
+! Solve
+! Show Voltages LN Nodes
+! Show Powers kVA Elements
+
+! -- Restore all inverters --
+! PVSystem.Inverter1.enabled=true
+! PVSystem.Inverter2.enabled=true
+! PVSystem.Inverter3.enabled=true
+
+! ============================================================
+! SCENARIO 4a: Harmonic Analysis – Inverters + Transformer Magnetizing
+!
+! HOW IT WORKS:
+!   - InverterInjection gives the inverters realistic small harmonic output
+!   - XfmrMagnetizing gives T2 its natural magnetizing harmonic current
+!   - Mode=Harmonic solves the full circuit independently at each harmonic
+!     frequency (60Hz, 180Hz, 300Hz, 420Hz, 660Hz, 780Hz)
+!   - The circuit impedance at each frequency determines how much the
+!     injection is amplified — resonance shows up as large currents at
+!     Bus_480V despite small injection at Bus_630V
+!
+! WHAT TO LOOK FOR:
+!   - Current at Mon_480V_Volt, harmonic order 5 → compare to fundamental
+!   - If 5th harmonic current approaches 50% of fundamental, resonance confirmed
+!   - Voltage THD at Bus_480V → check against IEEE 519 limit of 5%
+! ============================================================
+
+PVSystem.Inverter1.spectrum=InverterInjection
+PVSystem.Inverter2.spectrum=InverterInjection
+PVSystem.Inverter3.spectrum=InverterInjection
+
+! T2 is the dominant harmonic source when inverters are disconnected (Figure 8)
+Transformer.T2_DIA7StepUp.spectrum=XfmrMagnetizing
+
+Set Mode=Harmonic
+Solve
+
+Show Currents Elements
+Show Voltages LN Nodes
+Show Powers kVA Elements
+
+! ============================================================
+! SCENARIO 4b: No-Inverter Case (replicates Figure 8 in report)
+! T2 energized, all three inverters disconnected.
+! Should still show ~20% 5th harmonic at Bus_480V from T2 magnetizing alone.
+! ============================================================
+
+! PVSystem.Inverter1.enabled=false
+! PVSystem.Inverter2.enabled=false
+! PVSystem.Inverter3.enabled=false
+
+! Set Mode=Harmonic
+! Solve
+
+! Show Currents Elements
+! Show Voltages LN Nodes
+
+! ! Restore
+! PVSystem.Inverter1.enabled=true
+! PVSystem.Inverter2.enabled=true
+! PVSystem.Inverter3.enabled=true
+
+! ============================================================
+! SCENARIO 5: Harmonic Impedance Scan (find the resonant frequency)
+!
+! HOW IT WORKS:
+!   Inject exactly 1 amp at Bus_480V across harmonics 1–25.
+!   Because I = 1A, the resulting bus voltage numerically equals
+!   the driving-point impedance Z(f) at that bus.
+!   A spike in the voltage (= impedance) reveals the resonant frequency.
+!   The 5th harmonic (300 Hz) is harmonic order 5.
+!
+! WHAT TO LOOK FOR:
+!   - Plot Mon_ZScan_480V voltage vs harmonic order
+!   - A peak near order 5 confirms the resonance hypothesis
+!   - If the peak is elsewhere, the resonant frequency is different
+!     and the capacitance model needs adjustment
+! ============================================================
+
+! Flat spectrum: inject equal 1A at every harmonic order 1–25
+New Spectrum.FlatSweep
+~ numharm=25
+~ harmonic=[1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+~ %mag=    [100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100]
+~ angle=   [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+
+! Inject 1A at the 0.48kV measurement bus (billing meter location)
+New Isource.ZProbe
+~ phases=1
+~ bus1=Bus_480V.1
+~ amps=1
+~ angle=0
+~ frequency=60
+~ spectrum=FlatSweep
+
+! Monitor voltage at the injection point — V/I = Z since I=1A
+New Monitor.Mon_ZScan_480V  element=Isource.ZProbe  terminal=1  mode=0
+
+! Monitor at the 0.63kV inverter bus to see transfer impedance
+New Monitor.Mon_ZScan_630V  element=Transformer.T3_SiteStepDown  terminal=2  mode=0
+
+Set Mode=Harmonic
+Solve
+
+Show Voltages LN Nodes
+! Plot Mon_ZScan_480V to see impedance vs harmonic order
+
+! ============================================================
+! IEEE 519 / DG Tech Manual Limits (for reference)
+!   Individual harmonic voltage distortion at PCC:  < 3.0%
+!   Total voltage THD at PCC:                       < 5.0%
+!   Individual current harmonic (DG Tech Manual):   < 10%
+!   5th harmonic measured in report:                ~50%  ← 5× over limit
+! ============================================================

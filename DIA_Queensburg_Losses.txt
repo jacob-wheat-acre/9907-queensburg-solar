@@ -1,0 +1,21 @@
+
+LOSSES REPORT
+
+Power Delivery Element Loss Report
+
+Element                  kW Losses    % of Power   kvar Losses
+
+"Transformer.t1_xcelservice"  12.45777,     0.56     126.647
+"Transformer.t2_dia7stepup"  12.96138,     0.58     133.351
+"Transformer.t3_sitestepdown"  12.47541,     0.56     126.544
+"Transformer.t_zigzag"   0.00000,      0.0     0.000207968
+"Line.feeder_13800v"   3.20894,     0.14     -50.9894
+"Line.xcel_cable_24900v"   1.00396,     0.05     -135.009
+
+LINE LOSSES=                         4.2 kW
+TRANSFORMER LOSSES=                 37.9 kW
+
+TOTAL LOSSES=                       42.1 kW
+
+TOTAL LOAD POWER =                   0.0 kW
+Percent Losses for Circuit =  

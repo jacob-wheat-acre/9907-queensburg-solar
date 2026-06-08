@@ -1,0 +1,116 @@
+
+CIRCUIT ELEMENT POWER FLOW
+
+(Power Flow into element from indicated Bus)
+
+Power Delivery Elements
+
+  Bus Phase     kW     +j   kvar         kVA         PF
+
+ELEMENT = "Vsource.source"
+SUBSTATIONBUS    1       736.0 +j    -66.8      739.0      -0.9959
+SUBSTATIONBUS    2       736.0 +j    -66.8      739.0      -0.9959
+SUBSTATIONBUS    3       736.0 +j    -66.8      739.0      -0.9959
+   TERMINAL TOTAL  2207.9 +j   -200.5     2217.0      -0.9959
+SUBSTATIONBUS    0         0.0 +j      0.0        0.0       1.0000
+SUBSTATIONBUS    0         0.0 +j      0.0        0.0       1.0000
+SUBSTATIONBUS    0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL     0.0 +j      0.0        0.0       1.0000
+
+ELEMENT = "Transformer.t1_xcelservice"
+SOURCEBUS     1      -736.3 +j    111.9      744.7      -0.9887
+SOURCEBUS     2      -736.3 +j    111.9      744.7      -0.9887
+SOURCEBUS     3      -736.3 +j    111.9      744.7      -0.9887
+SOURCEBUS     0         0.0 +j     -0.0        0.0       1.0000
+   TERMINAL TOTAL -2208.9 +j    335.6     2234.2      -0.9887
+BUS_480V     1       740.5 +j    -69.6      743.7      -0.9956
+BUS_480V     2       740.5 +j    -69.6      743.7      -0.9956
+BUS_480V     3       740.5 +j    -69.6      743.7      -0.9956
+BUS_480V     0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL  2221.4 +j   -208.9     2231.2      -0.9956
+
+ELEMENT = "Transformer.t2_dia7stepup"
+BUS_480V     1      -740.5 +j     69.6      743.7      -0.9956
+BUS_480V     2      -740.5 +j     69.6      743.7      -0.9956
+BUS_480V     3      -740.5 +j     69.6      743.7      -0.9956
+BUS_480V     0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL -2221.4 +j    208.9     2231.2      -0.9956
+BUS_13800_SEND     1       744.8 +j    -25.2      745.2      -0.9994
+BUS_13800_SEND     2       744.8 +j    -25.2      745.2      -0.9994
+BUS_13800_SEND     3       744.8 +j    -25.2      745.2      -0.9994
+BUS_13800_SEND     0         0.0 +j     -0.0        0.0       1.0000
+   TERMINAL TOTAL  2234.3 +j    -75.6     2235.6      -0.9994
+
+ELEMENT = "Transformer.t3_sitestepdown"
+BUS_13800_RECV     1      -745.8 +j     42.2      747.0      -0.9984
+BUS_13800_RECV     2      -745.8 +j     42.2      747.0      -0.9984
+BUS_13800_RECV     3      -745.8 +j     42.2      747.0      -0.9984
+BUS_13800_RECV     0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL -2237.5 +j    126.5     2241.1      -0.9984
+BUS_630V     1       750.0 +j      0.0      750.0       1.0000
+BUS_630V     2       750.0 +j      0.0      750.0       1.0000
+BUS_630V     3       750.0 +j      0.0      750.0       1.0000
+BUS_630V     0         0.0 +j     -0.0        0.0       1.0000
+   TERMINAL TOTAL  2250.0 +j      0.0     2250.0       1.0000
+
+ELEMENT = "Transformer.t_zigzag"
+BUS_480V     1         0.0 +j      0.0        0.0       0.0013
+BUS_480V     2        -0.0 +j      0.0        0.0      -0.0002
+BUS_480V     3        -0.0 +j      0.0        0.0      -0.0011
+BUS_480V     0         0.0 +j     -0.0        0.0       1.0000
+   TERMINAL TOTAL     0.0 +j      0.0        0.0       0.0000
+BUS_ZZ_INTERNAL     1        -0.0 +j      0.0        0.0      -0.5969
+BUS_ZZ_INTERNAL     2         0.0 +j      0.0        0.0       0.9278
+BUS_ZZ_INTERNAL     3        -0.0 +j      0.0        0.0      -0.1059
+BUS_ZZ_INTERNAL     0         0.0 +j      0.0        0.0       1.0000
+   TERMINAL TOTAL    -0.0 +j      0.0        0.0      -0.0193
+
+ELEMENT = "Line.feeder_13800v"
+BUS_13800_SEND     1      -744.8 +j     25.2      745.2      -0.9994
+BUS_13800_SEND     2      -744.8 +j     25.2      745.2      -0.9994
+BUS_13800_SEND     3      -744.8 +j     25.2      745.2      -0.9994
+   TERMINAL TOTAL -2234.3 +j     75.6     2235.6      -0.9994
+BUS_13800_RECV     1       745.8 +j    -42.2      747.0      -0.9984
+BUS_13800_RECV     2       745.8 +j    -42.2      747.0      -0.9984
+BUS_13800_RECV     3       745.8 +j    -42.2      747.0      -0.9984
+   TERMINAL TOTAL  2237.5 +j   -126.5     2241.1      -0.9984
+
+ELEMENT = "Line.xcel_cable_24900v"
+SUBSTATIONBUS     1      -736.0 +j     66.8      739.0      -0.9959
+SUBSTATIONBUS     2      -736.0 +j     66.8      739.0      -0.9959
+SUBSTATIONBUS     3      -736.0 +j     66.8      739.0      -0.9959
+   TERMINAL TOTAL -2207.9 +j    200.5     2217.0      -0.9959
+SOURCEBUS     1       736.3 +j   -111.9      744.7      -0.9887
+SOURCEBUS     2       736.3 +j   -111.9      744.7      -0.9887
+SOURCEBUS     3       736.3 +j   -111.9      744.7      -0.9887
+   TERMINAL TOTAL  2208.9 +j   -335.6     2234.2      -0.9887
+
+= = = = = = = = = = = = = = = = = = =  = = = = = = = = = = =  = =
+
+Power Conversion Elements
+
+  Bus Phase     kW   +j  kvar         kVA         PF
+
+ELEMENT = "PVSystem.inverter1"
+BUS_630V     1    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     2    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     3    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL   -750.0 +j      0.0      750.0      -1.0000
+
+ELEMENT = "PVSystem.inverter2"
+BUS_630V     1    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     2    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     3    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL   -750.0 +j      0.0      750.0      -1.0000
+
+ELEMENT = "PVSystem.inverter3"
+BUS_630V     1    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     2    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     3    -250.0 +j    0.0      250.0      -1.0000
+BUS_630V     0       0.0 +j    0.0        0.0       1.0000
+  TERMINAL TOTAL   -750.0 +j      0.0      750.0      -1.0000
+
+
+Total Circuit Losses =   42.1 +j  200.5
